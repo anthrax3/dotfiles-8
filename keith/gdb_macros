@@ -1,0 +1,145 @@
+# Print out a count of the entries in each level of an insert/update skip list.
+# arg0: skip-list array
+define skip_count
+        set $lvl = 10
+        while (1)
+                set $lvl = $lvl - 1
+                set $cnt = 0
+                set $p = ($arg0)[$lvl]
+                while ($p != 0)
+                        set $cnt = $cnt + 1
+                        set $p = ($p)->next[$lvl]
+                end
+                printf "level %d ... %d entries\n", $lvl, $cnt
+                if ($lvl == 0)
+                        loop_break
+                end
+        end
+end
+
+# Print out the entries in one level of a skip list.
+# arg0: skip-list array
+# arg1: int level
+define skip_single
+        printf "... printing level %d\n", $arg1
+        set $p = ($arg0)[$arg1]
+        while ($p != 0)
+                print *$p
+                set $p = ($p)->next[$arg1]
+        end
+end
+
+# Print out the entries in all levels of a skip list.
+# arg0: skip-list array
+define skip_all
+        set $lvl = 10
+        while (1)
+                set $lvl = $lvl - 1
+                skip_single $arg0 $lvl
+                if ($lvl == 0)
+                        loop_break
+                end
+        end
+end
+
+# Print out a count of the entries in each level of an insert/update skip list.
+# arg0: WT_INSERT_HEAD *.
+define skip_insert_count
+        set $lvl = 10
+        while (1)
+                set $lvl = $lvl - 1
+                set $cnt = 0
+                set $p = ($arg0)->head[$lvl]
+                while ($p != 0)
+                        set $cnt = $cnt + 1
+                        set $p = ($p)->next[$lvl]
+                end
+                printf "level %d ... %d entries\n", $lvl, $cnt
+                if ($lvl == 0)
+                        loop_break
+                end
+        end
+end
+
+# Print out the entries in one level of an insert/update skip list.
+# arg0: WT_INSERT_HEAD *
+# arg1: int level
+define skip_insert_single
+        printf "... printing level %d\n", $arg1
+        set $p = ($arg0)->head[$arg1]
+        while ($p != 0)
+                print *$p
+                if ($p->upd != 0)
+                        print *$p->upd
+                end
+                set $p = ($p)->next[$arg1]
+        end
+end
+
+# Print out the entries in all levels of a skip list.
+# arg0: WT_INSERT_HEAD *
+define skip_insert_all
+        set $lvl = 10
+        while (1)
+                set $lvl = $lvl - 1
+                skip_insert_single $arg0 $lvl
+                if ($lvl == 0)
+                        loop_break
+                end
+        end
+end
+                        
+# Dump the column-store page modify structures append skip list.
+# arg0: WT_PAGE *.
+define col_page_append
+        if ($arg0->modify->append == 0)
+                printf "no append skip list to dump\n"
+        else
+                skip_insert_count *($arg0)->modify->append
+                skip_insert_all *($arg0)->modify->append
+        end
+end
+        
+# Dump the column-store page modify structures update skip list.
+# arg0: WT_PAGE *.
+define col_page_update
+        if ($arg0->modify->update == 0)
+                printf "no update skip list to dump\n"
+        else
+                skip_insert_count *($arg0)->modify->update
+                skip_insert_all *($arg0)->modify->update
+        end
+end
+                
+# Dump a row-store page's insert/update skip lists.
+# arg0: WT_INSERT_HEAD *
+define row_page_skip
+        skip_insert_count $arg0
+        skip_insert_all $arg0
+end
+
+# Dump the handles cached by a session.
+define dump_session_handle
+        set $p = session->dhandles->tqh_first
+        while ($p != 0)
+                printf "%s", $p->dhandle->name
+                if ($p->dhandle->checkpoint != 0)
+                        printf " (%s)", $p->dhandle->checkpoint
+                end
+                printf "\n"
+                set $p = ($p)->q.tqe_next
+        end
+end
+                
+# Dump the handles in the connection.
+define dump_conn_handle
+        set $p = ((WT_CONNECTION_IMPL *)session->iface.connection)->dhqh->tqh_first
+        while ($p != 0)
+                printf "%s", $p->name
+                if ($p->checkpoint != 0)
+                        printf " (%s)", $p->checkpoint
+                end
+                printf "\n"
+                set $p = ($p)->q.tqe_next
+        end
+end
