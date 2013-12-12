@@ -127,6 +127,9 @@ define dump_session_handle
                 if ($p->dhandle->checkpoint != 0)
                         printf " (%s)", $p->dhandle->checkpoint
                 end
+                printf " ref: %d, ", $p->dhandle->session_ref
+                printf "inuse: %d, ", $p->dhandle->session_inuse
+                printf "flags: 0x%x", $p->dhandle->flags
                 printf "\n"
                 set $p = ($p)->l.sle_next
                 set $c = $c + 1
@@ -142,6 +145,9 @@ define dump_conn_handle
                 if ($p->checkpoint != 0)
                         printf " (%s)", $p->checkpoint
                 end
+                printf " ref: %d, ", $p->session_ref
+                printf "inuse: %d, ", $p->session_inuse
+                printf "flags: 0x%x", $p->flags
                 printf "\n"
                 set $p = ($p)->l.sle_next
                 set $c = $c + 1
