@@ -129,6 +129,7 @@ define dump_session_handle
                 end
                 printf "\n"
                 set $p = ($p)->l.sle_next
+                set $c = $c + 1
         end
 end
                 
