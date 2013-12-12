@@ -120,7 +120,7 @@ end
 
 # Dump the handles cached by a session.
 define dump_session_handle
-        set $p = session->dhandles->dhlh_first
+        set $p = session->dhandles->slh_first
         set $c = 0
         while ($p != 0)
                 printf "%d: %s", $c, $p->dhandle->name
