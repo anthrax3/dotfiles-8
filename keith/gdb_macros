@@ -120,26 +120,29 @@ end
 
 # Dump the handles cached by a session.
 define dump_session_handle
-        set $p = session->dhandles->tqh_first
+        set $p = session->dhandles->dhlh_first
+        set $c = 0
         while ($p != 0)
-                printf "%s", $p->dhandle->name
+                printf "%d: %s", $c, $p->dhandle->name
                 if ($p->dhandle->checkpoint != 0)
                         printf " (%s)", $p->dhandle->checkpoint
                 end
                 printf "\n"
-                set $p = ($p)->q.tqe_next
+                set $p = ($p)->l.sle_next
         end
 end
                 
 # Dump the handles in the connection.
 define dump_conn_handle
-        set $p = ((WT_CONNECTION_IMPL *)session->iface.connection)->dhqh->tqh_first
+        set $c = 0
+        set $p = ((WT_CONNECTION_IMPL *)session->iface.connection)->dhlh->slh_first
         while ($p != 0)
-                printf "%s", $p->name
+                printf "%d: %s", $c, $p->name
                 if ($p->checkpoint != 0)
                         printf " (%s)", $p->checkpoint
                 end
                 printf "\n"
-                set $p = ($p)->q.tqe_next
+                set $p = ($p)->l.sle_next
+                set $c = $c + 1
         end
 end
