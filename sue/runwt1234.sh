@@ -22,49 +22,33 @@ else
 	t4=$runnerdir/test4-500m-lsm.wtperf
 fi
 out=~/wtperf.out
-echo "======== $t1 ========" >> $out
-datestr=`date +%Y%m%d_%H%M%S`
-datadir=~/wtperf.tests/$datestr
-mkdir $datadir
+runtest() {
+	echo "======== $1 ========" >> $out
+	datestr=`date +%Y%m%d_%H%M%S`
+	datadir=~/wtperf.tests/$datestr
+	mkdir $datadir
+	echo "wtperf -h $dir -O $1 -m $datadir"
+	cp $1 $datadir
+	echo `date` >> $out 
+	./wtperf -O $1 -h $dir -m $datadir 2>&1 $out
+	echo `date` >> $out
+	echo `git rev-parse HEAD` > $datadir/WT.gitrev
+	if test -e $dir/test.stat; then
+		cp $dir/test.stat $datadir
+	fi
+	statfiles=`ls $dir/WiredTigerStat*`
+	for s in $statfiles; do
+		f=$(basename "$s")
+		cp $s $datadir/$f
+	done
+}
+
 rm -rf $dir
 mkdir $dir
-echo "wtperf -h $dir -O $t1 -m $datadir"
-cp $t1 $datadir
-echo `date` >> $out 
-./wtperf -O $t1 -h $dir -m $datadir 2>&1 $out
-echo `date` >> $out
-
-echo "======== $t2 ========" >> $out
-datestr=`date +%Y%m%d_%H%M%S`
-datadir=~/wtperf.tests/$datestr
-mkdir $datadir
-echo "wtperf -h $dir -O $t2 -m $datadir"
-cp $t2 $datadir
-echo `date` >> $out
-./wtperf -O $t2 -h $dir -m $datadir 2>&1 $out
-echo `date` >> $out
-
-echo "======== $t3 ========" >> $out
-datestr=`date +%Y%m%d_%H%M%S`
-datadir=~/wtperf.tests/$datestr
-mkdir $datadir
-echo "wtperf -h $dir -O $t3 -m $datadir"
-cp $t3 $datadir
-echo `date` >> $out
-./wtperf -O $t3 -h $dir -m $datadir 2>&1 $out
-echo `date` >> $out
-
-echo "======== $t4 ========" >> $out
-datestr=`date +%Y%m%d_%H%M%S`
-datadir=~/wtperf.tests/$datestr
-mkdir $datadir
-echo "wtperf -h $dir -O $t4 -m $datadir"
-cp $t4 $datadir
-echo `date` >> $out
-./wtperf -O $t4 -h $dir -m $datadir 2>&1 $out
-echo `date` >> $out
-
+runtest $t1
+runtest $t2
+runtest $t3
+runtest $t4
 echo `date`
-echo `date` >> $out
 echo "======== DONE ========" >> $out
 echo "======== DONE ========" 

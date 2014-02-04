@@ -15,14 +15,28 @@ if test "$1" == "long"; then
 else
 	t1=$runnerdir/fruit-short.wtperf
 fi
-echo "======== $t1 ========" >> ~/wtperf.out
-datestr=`date +%Y%m%d_%H%M%S`
-datadir=~/wtperf.tests/$datestr
-mkdir $datadir
+runtest() {
+	echo "======== $1 ========" >> $out
+	datestr=`date +%Y%m%d_%H%M%S`
+	datadir=~/wtperf.tests/$datestr
+	mkdir $datadir
+	echo "wtperf -h $dir -O $1 -m $datadir"
+	cp $1 $datadir
+	echo `date` >> $out 
+	./wtperf -O $1 -h $dir -m $datadir 2>&1 $out
+	echo `date` >> $out
+	echo `git rev-parse HEAD` > $datadir/WT.gitrev
+	if test -e $dir/test.stat; then
+		cp $dir/test.stat $datadir
+	fi
+	statfiles=`ls $dir/WiredTigerStat*`
+	for s in $statfiles; do
+		f=$(basename "$s")
+		cp $s $datadir/$f
+	done
+}
 rm -rf $dir
 mkdir $dir
-echo "wtperf -h $dir -O $t1 -m $datadir"
-echo `date` >> ~/wtperf.out
-./wtperf -O $t1 -h $dir -m $datadir 2>&1 ~/wtperf.out
+runtest $t1
 echo `date`
 echo "======== DONE ========" 
