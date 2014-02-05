@@ -36,6 +36,8 @@ runtest() {
 	datestr=`date +%Y%m%d_%H%M%S`
 	datadir=$testdir/$datestr
 	mkdir $datadir
+	rm -f $testdir/current
+	ln -s $datadir $testdir/current
 	echo `git rev-parse HEAD` > $datadir/WT.gitrev
 	echo "wtperf -h $homedir -O $1 -m $datadir $statarg"
 	cp $1 $datadir
