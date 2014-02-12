@@ -28,6 +28,7 @@ statarg=""
 if test "$#" -eq "2"; then
 	if test "$2" == "stat"; then
 		statarg="-C statistics=(fast,clear),statistics_log=(wait=$statsec)"
+	#	statarg="-C statistics=(fast,clear),statistics_log=(wait=$statsec),verbose=(lsm)"
 	fi
 fi
 out=$testdir/wtperf.out.$$
@@ -42,27 +43,30 @@ runtest() {
 	echo "wtperf -h $homedir -O $1 -m $datadir $statarg"
 	cp $1 $datadir
 	echo `date` >> $out 
+	echo "wtperf -h $homedir -O $1 -m $datadir $statarg" >> $out
 	./wtperf -O $1 -h $homedir -m $datadir $statarg 2>&1 $out
+	echo `ls -l $homedir` >> $out
 	echo `date` >> $out
 	if test -e $homedir/test.stat; then
 		cp $homedir/test.stat $datadir
 	fi
 	statfiles=`ls $homedir/WiredTigerStat*`
+	statf=0
 	for s in $statfiles; do
 		f=$(basename "$s")
 		cp $s $datadir/$f
+		statf=1
 	done
+	cwd=`pwd`
+	if test "$statf" -ne "0"; then
+		(cd $datadir; python $cwd/../../../tools/wtstats.py $statfiles)
+	fi
+	(cd $datadir; python $cwd/../../../tools/wtperf_stats.py monitor)
 }
 
 rm -rf $homedir
 mkdir $homedir
 runtest $t1
-#
-# If it is the large run, compact may not have finished.  Give it time.
-#
-if test "$1" == "long"; then
-	sleep 1200
-fi
 runtest $t2
 runtest $t3
 runtest $t4
