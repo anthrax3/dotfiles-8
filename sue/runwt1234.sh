@@ -39,6 +39,13 @@ runtest() {
 	mkdir $datadir
 	rm -f $testdir/current
 	ln -s $datadir $testdir/current
+	#
+	# Before running, remove any stat files from a previous run.
+	# Call this now, rather than after we copy them later in this
+	# function so that they remain in the home dir after the last
+	# call completes.
+	#
+	rm -f $homedir/WiredTigerStat*
 	echo `git rev-parse HEAD` > $datadir/WT.gitrev
 	echo "wtperf -h $homedir -O $1 -m $datadir $statarg"
 	cp $1 $datadir
@@ -47,6 +54,10 @@ runtest() {
 	./wtperf -O $1 -h $homedir -m $datadir $statarg 2>&1 $out
 	echo `ls -l $homedir` >> $out
 	echo `date` >> $out
+	#
+	# After the test runs, copy anything interesting into the
+	# data collection directory and generate some graphs.
+	#
 	if test -e $homedir/test.stat; then
 		cp $homedir/test.stat $datadir
 	fi
