@@ -41,7 +41,18 @@ else
 	cp ../bench/wtperf/runners/multi-btree-table.wtperf $DEST/config
 fi
 
+if [ -e $SOURCE/pmp.out ]; then
+	cp $SOURCE/pmp.out $DEST/pmp.out
+fi
+
 dbsize=`du -sh $SOURCE`
 echo "$dbsize" >> $DEST/info
+
+commit_id=`git log -n 1`
+echo "$commit_id" >> $DEST/info
+
+echo "======== Local Changes ==============" >> $DEST/info
+git diff >> $DEST/info
+echo "======== End Local Changes ==============" >> $DEST/info
 
 rm -f $TMP
