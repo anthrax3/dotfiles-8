@@ -21,6 +21,22 @@ cd ${TOPLEVEL}/src/third_party
 # Begin tracing commands
 set -o xtrace
 
+DATE=`date +"%Y_%m_%d_%H_%M_%S"`
+COMMIT_MSG="WiredTiger change based on WT $REMOTEBRANCH branch"
+DIFFERS_FROM_UPSTREAM="`git diff @{upstream} | head -n 1`"
+if [ "x" != "x$DIFFERS_FROM_UPSTREAM" ]; then
+	read -p "The tree differs from origin/master - reset local changes? " -r
+	if [[ $REPLY =~ ^[Yy]$ ]]; then
+		read -p "Save local changes first? " -r
+		if [[ $REPLY =~ ^[Yy]$ ]]; then
+			echo "Saving local changes to local_changes_$DATE.diff"
+			git diff @{upstream} > local_changes_$DATE.diff
+		fi
+		git fetch origin
+		git reset --hard FETCH_HEAD
+	fi
+fi
+
 rm -f wiredtiger-wiredtiger-*.tar.gz
 curl -OJL https://api.github.com/repos/wiredtiger/wiredtiger/tarball/${REMOTEBRANCH}
 
@@ -45,7 +61,9 @@ set -o errexit
 cd $STARTPWD
 echo "Done applying $TARBALL "
 
-read -p "Updated local tree, would you like to create an Evergreen patch build? " -n 1 -r
+git commit -m "$COMMIT_MSG"
+
+read -p "Updated local tree, would you like to create an Evergreen patch build? " -r
 if [[ $REPLY =~ ^[Yy]$ ]]; then
 
 	MONGO_BRANCH=`git branch | grep "^*" | cut -d ' ' -f 2`
@@ -57,7 +75,17 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
 
 fi
 
-read -p "Would you like to unstage local changes? " -n 1 -r
+read -p "Would you like to build mongod? " -r
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+	BUILD_CMD=`grep scons ~/.bash_history | tail -n 1`
+	if [ "x" != "x$BUILD_CMD" ]; then
+		eval $BUILD_CMD
+	else
+		echo "Could not find scons in command history, can't build"
+	fi
+fi
+
+read -p "Would you like to unstage local changes? " -r
 if [[ $REPLY =~ ^[Yy]$ ]]; then
 	git reset HEAD
 	git diff | patch -p1 -R
