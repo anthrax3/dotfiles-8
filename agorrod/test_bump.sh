@@ -32,9 +32,13 @@ if [ "x" != "x$DIFFERS_FROM_UPSTREAM" ]; then
 			echo "Saving local changes to local_changes_$DATE.diff"
 			git diff @{upstream} > local_changes_$DATE.diff
 		fi
-		git fetch origin
-		git reset --hard FETCH_HEAD
 	fi
+fi
+
+read -p "Update tree to include latest changes from upstream? " -r
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+	git fetch origin
+	git reset --hard FETCH_HEAD
 fi
 
 rm -f wiredtiger-wiredtiger-*.tar.gz
