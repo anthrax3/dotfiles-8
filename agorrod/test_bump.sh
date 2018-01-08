@@ -65,8 +65,6 @@ set -o errexit
 cd $STARTPWD
 echo "Done applying $TARBALL "
 
-git commit -m "$COMMIT_MSG"
-
 read -p "Updated local tree, would you like to create an Evergreen patch build? " -r
 if [[ $REPLY =~ ^[Yy]$ ]]; then
 
@@ -94,5 +92,8 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
 	git reset HEAD
 	git diff | patch -p1 -R
 	git status -u --porcelain src/third_party/wiredtiger | cut -d ' ' -f 2 | xargs rm -f
+else
+  echo "Committed local changes."
+  git commit -m "$COMMIT_MSG"
 fi
 
